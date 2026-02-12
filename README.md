@@ -34,7 +34,7 @@ Create .env file and put you OPENAI API key inside this file
 
 # Run
 1. create virtual environment:
-   python -m venv venv
+   python -m venv venv,
    source venv/bin/activate
 2. install dependencies:
    pip install -r requirements.txt
