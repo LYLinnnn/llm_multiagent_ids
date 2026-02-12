@@ -11,12 +11,12 @@ Agents:
 5. AuditLearningAgent
 
 Requirements:
-    pip install langgraph openai python-dotenv
+    pip install langgraph openai python-dotenv sentence-transformers faiss-cpu pandas
 
 Run:
     cd /Users/yilinli/honours
         source venv/bin/activate -- activate the virtual env
-    python3 cyber_management_agents2.py
+    python3 cisids_runner.py
 """
 
 from typing import TypedDict, Dict, Any, List
