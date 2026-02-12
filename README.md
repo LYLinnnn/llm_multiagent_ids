@@ -14,7 +14,7 @@ Instead of traditional ML/DL classifiers, there are 5 agents in total:
 
 # DATASET:
 Please download the dataset from this link: https://www.kaggle.com/datasets/primus11/cic-ids-2018-dataset. 
-Place the CSV file in project root
+Place the CSV file in project root and name it as "cis-ids2018.csv". 
 
 # Requirement:
 Python 3.10+
