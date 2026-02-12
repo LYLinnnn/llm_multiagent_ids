@@ -1,0 +1,23 @@
+# =========================
+# LLM-based Intrusion Detection System
+# Dependencies
+# =========================
+
+# LLM API
+openai>=1.30.0
+
+# Multi-agent workflow
+langgraph>=0.2.0
+
+# Data handling
+pandas>=2.0.0
+
+# Environment variable loading (.env for API keys)
+python-dotenv>=1.0.0
+
+# RAG / vector search
+sentence-transformers>=2.6.0
+faiss-cpu>=1.7.4
+
+# HuggingFace tokenizer backend (performance + fewer warnings)
+tokenizers>=0.15.0
