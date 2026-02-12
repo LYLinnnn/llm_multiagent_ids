@@ -13,8 +13,8 @@ Instead of traditional ML/DL classifiers, there are 5 agents in total:
 5. AuditLearningAgent: generate report automatically
 
 # DATASET:
-please download the dataset from this link: https://www.kaggle.com/datasets/primus11/cic-ids-2018-dataset
-place the CSV file in project root
+Please download the dataset from this link: https://www.kaggle.com/datasets/primus11/cic-ids-2018-dataset. 
+Place the CSV file in project root
 
 # Requirement:
 Python 3.10+
@@ -28,5 +28,20 @@ Key libraries:
 - faiss-cpu
 - pandas
 - python-dotenv
+
+# Environment Setup
+Create .env file and put you OPENAI API key inside this file
+
+# Run
+1. create virtual environment:
+   python -m venv venv
+   source venv/bin/activate
+2. install dependencies:
+   pip install -r requirements.txt
+3. run:
+   python3 cisids_runner.py
+4. output:
+   results saved to results/llm_ids_results.csv
+
 
 
