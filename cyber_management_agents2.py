@@ -5,7 +5,7 @@ input: CIS-IDS2018.csv
 
 Agents:
 1. EventProcessingAgent (Ingest + Clean)
-2. ThreatCognibstiveAgent (Detect + Analyse)
+2. ThreatCognitiveAgent (Detect + Analyse)
 3. ResponseDecisionAgent
 4. EnforcementAgent
 5. AuditLearningAgent
@@ -26,9 +26,9 @@ import json
 from langgraph.graph import StateGraph, START, END
 from openai import OpenAI
 from dotenv import load_dotenv
-from rag_retriever import ThreatRAG
+#from rag_retriever import ThreatRAG
 import os
-rag = ThreatRAG()
+#rag = ThreatRAG()
 
 # -----------------------------
 # LLM Client
@@ -100,7 +100,7 @@ def event_processing_agent(state: CyberState) -> CyberState:
             - SYN_flag
             - ACK_flag
             - max_idle_value
-        - Normalize values (convert durations to ms if needed)
+        - Normalize values
         - Remove irrelevant/noisy features
         - Choose feature name yourself
 
@@ -118,22 +118,19 @@ def event_processing_agent(state: CyberState) -> CyberState:
 
 
 # -----------------------------
-# 2) Threat Intelligence Agent
+# 2) Threat Cognitive Agent
 # -----------------------------
-def threat_intelligence_agent(state: CyberState) -> CyberState:
+def threat_cognitive_agent(state: CyberState) -> CyberState:
     event_text = json.dumps(state["processed_event"], indent=2)
-    # 🔵 Retrieve threat knowledge
-    context_docs = rag.retrieve(event_text)
-    context = "\n\n".join(context_docs)
 
     # -------------------------
     # Few-shot examples (heuristic anchors)
     # -------------------------
     few_shot_examples = """
-    Example 1 (Benign):
-    flow_duration=476608μs 
+    Example 1 (Benign): 
     destination_port=80
     protocol=6
+    flow_duration=476608μs
     total_forwarding_packets=5
     total_backward_packets=3
     flow_bytes_per_second=1405.7674231234
@@ -144,22 +141,48 @@ def threat_intelligence_agent(state: CyberState) -> CyberState:
     label=benign
 
     Example 2 (Benign):
-    flow_duration=2094μs
     destination_port=49906
     protocol=6
+    flow_duration=2094μs
     total_forwarding_packets=2
     total_backward_packets=1
-    flow_bytes_per_second=18147.08691
-    flow_packets_per_second=1432.664756
+    flow_bytes_per_second=18147.0869149952
+    flow_packets_per_second=1432.664756447
     SYN_flag=1
     ACK_flag=1
     max_idle_value=0
     label=benign
 
-    Example 3 (FTP Brute Force):
-    flow_duration=2μs 
+    Example 3 (Benign):
+    destination_port=53
+    protocol=17
+    flow_duration=238μs
+    total_forwarding_packets=1
+    total_backward_packets=1
+    flow_bytes_per_second=941176.470588235
+    flow_packets_per_second=8403.3613445378
+    SYN_flag=0
+    ACK_flag=0
+    max_idle_value=0
+    label=benign
+
+    Example 4 (Benign):
+    destination_port=0
+    protocol=0
+    flow_duration=112641244μs
+    total_forwarding_packets=3
+    total_backward_packets=0
+    flow_bytes_per_second=0
+    flow_packets_per_second=0.0266332286
+    SYN_flag=0
+    ACK_flag=0
+    max_idle_value=56320666
+    label=benign
+
+    Example 5 (FTP Brute Force):
     destination_port=21
     protocol=6
+    flow_duration=2μs 
     total_forwarding_packets=1
     total_backward_packets=1
     flow_bytes_per_second=0
@@ -169,27 +192,73 @@ def threat_intelligence_agent(state: CyberState) -> CyberState:
     max_idle_value=0
     label=FTP Brute Force
 
-    Example 4 (SSH Brute Force):
-    flow_duration=353159μs 
-    destination_port=22
+    Example 6 (FTP Brute Force):
+    destination_port=21
     protocol=6
+    flow_duration=19μs 
     total_forwarding_packets=1
     total_backward_packets=1
     flow_bytes_per_second=0
-    flow_packets_per_second=333333.33
+    flow_packets_per_second=105263.157894737
     SYN_flag=0
-    ACK_flag=1
+    ACK_flag=0
+    max_idle_value=0
+    label=FTP Brute Force
+
+    Example 7 (FTP Brute Force):
+    destination_port=21
+    protocol=6
+    flow_duration=1μs 
+    total_forwarding_packets=1
+    total_backward_packets=1
+    flow_bytes_per_second=0
+    flow_packets_per_second=2000000.0
+    SYN_flag=0
+    ACK_flag=0
+    max_idle_value=0
+    label=FTP Brute Force
+
+    Example 8 (SSH Brute Force):
+    destination_port=22
+    protocol=6
+    flow_duration=396521μs 
+    total_forwarding_packets=24
+    total_backward_packets=20
+    flow_bytes_per_second=11542.8943233776
+    flow_packets_per_second=110.9651191236
+    SYN_flag=0
+    ACK_flag=0
     max_idle_value=0
     label=SSH Brute Force
+
+    Example 9 (SSH Brute Force):
+    destination_port=22
+    protocol=6
+    flow_duration=400302μs 
+    total_forwarding_packets=22
+    total_backward_packets=22
+    flow_bytes_per_second=11473.8372528741
+    flow_packets_per_second=109.9170126554
+    SYN_flag=0
+    ACK_flag=0
+    max_idle_value=0
+    label=SSH Brute Force
+
+    Example 10 (SSH Brute Force):
+    destination_port=22
+    protocol=6
+    flow_duration=371388μs 
+    total_forwarding_packets=24
+    total_backward_packets=22
+    flow_bytes_per_second=12367.120100811
+    flow_packets_per_second=123.8596831346
+    SYN_flag=0
+    ACK_flag=0
+    max_idle_value=0
+    label=SSH Brute Force
+
     """
 
-    # Example 5 (Port Scan):
-    # very short flows, small packets, MANY different destination ports contacted
-    # label=PortScan
-
-    # Example 6 (Data Exfiltration):
-    # long duration, steady outbound bytes, upload >> download
-    # label=Infiltration
 
     system = """
     You are an expert SOC analyst.
@@ -223,9 +292,9 @@ def threat_intelligence_agent(state: CyberState) -> CyberState:
     Answer these silently, no need to return:
 
     1. What are common traits of benign traffic?
-    2. What traffic characteristics strongly indicate DoS?
-    3. What distinguishes Brute Force from DoS?
-    4. What distinguishes Port Scan from Brute Force?
+    2. What traffic characteristics strongly indicate FTP Brute Force?
+    3. What traffic characteristics strongly indicate SSH Brute Force?
+    4. What distinguishes FTP Brute Force from SSH Brute Force?
     5. What duration and packet-rate ranges are considered normal?
     6. Summarize detection heuristics for each attack type.
 
@@ -242,7 +311,7 @@ def threat_intelligence_agent(state: CyberState) -> CyberState:
     Do NOT include markdown, code fences, or explanations.
     {{
     "label": "malicious | benign",
-    "attack_type": "...",
+    "attack_type": "FTP Brute Force | SSH Brute Force",
     "confidence": number,
     "reasoning": "clear security reasoning using heuristics and evidence"
     }}
@@ -267,7 +336,7 @@ Tasks:
 - Justify the decision based on risk
 
 Rules:
-- You MUST NOT assume access to any grounf-truth labels when predicting the results
+- You MUST NOT assume access to any ground-truth labels when predicting the results
 - Base decisions only on provided features
 
 Return ONLY valid JSON:
@@ -361,7 +430,7 @@ def build_graph():
     graph = StateGraph(CyberState)
 
     graph.add_node("event_processing", event_processing_agent)
-    graph.add_node("threat_intel", threat_intelligence_agent)
+    graph.add_node("threat_intel", threat_cognitive_agent)
     graph.add_node("decision", response_decision_agent)
     graph.add_node("enforce", enforcement_agent)
     graph.add_node("audit", audit_learning_agent)
@@ -412,3 +481,4 @@ def build_graph():
 
 #     pd.DataFrame(results).to_csv("cicids_llm_results.csv", index=False)
 #     print("✅ CIC-IDS2018 evaluation complete")
+
